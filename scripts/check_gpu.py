@@ -30,7 +30,7 @@ def describe_device(index: int = 0) -> dict[str, str]:
 def time_matmul_ms(size: int = 4096) -> float:
     a = torch.randn(size, size, device="cuda", dtype=torch.float16)
 
-    # A primeira execucao inclui compilacao e carga do kernel; descartamos.
+    # A primeira execução inclui compilação e carga do kernel; descartamos.
     a @ a
     torch.cuda.synchronize()
 
