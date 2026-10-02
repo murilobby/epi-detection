@@ -1,0 +1,4 @@
+split,images,background_images,mean_boxes_per_image,max_boxes_per_image,background_pct
+train,5669,231,3.36,89,4.1
+val,1216,108,3.37,140,8.9
+test,1214,90,3.36,37,7.4

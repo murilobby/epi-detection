@@ -1,0 +1,6 @@
+,relation,boxes,pct
+0,capacete com >= 90% da área dentro de uma pessoa,927,88.2
+1,cabeça com >= 90% da área dentro de uma pessoa,11985,94.9
+2,colete com >= 90% da área dentro de uma pessoa,530,87.9
+3,capacete com >= 50% da área dentro de uma cabeça,927,79.3
+4,cabeça que contém >= 50% de algum capacete,11985,6.1

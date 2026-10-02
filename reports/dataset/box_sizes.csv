@@ -1,0 +1,9 @@
+class_name,imgsz,small_pct,medium_pct,large_pct,median_side_px
+person,640,9.8,11.5,78.7,231.1
+head,640,22.7,43.9,33.4,71.5
+helmet,640,53.6,34.8,11.5,26.2
+safety-vest,640,45.3,32.3,22.5,38.6
+person,1280,4.7,8.5,86.8,462.1
+head,1280,13.6,20.0,66.4,142.9
+helmet,1280,35.9,32.7,31.4,52.5
+safety-vest,1280,27.7,30.0,42.3,77.2
