@@ -1,10 +1,11 @@
 .venv/
 __pycache__/
 *.py[cod]
+*.egg-info/
 
-data/
-models/
-runs/
+/data/
+/models/
+/runs/
 
 *.pt
 *.onnx
