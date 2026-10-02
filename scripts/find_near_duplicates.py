@@ -69,7 +69,7 @@ def main() -> None:
 
     pairs = label_pairs(close_pairs(hashes, max(THRESHOLDS)), index)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    pairs.sort_values(["distance", "stem_a"]).to_csv(args.out, index=False)
+    pairs.sort_values(["distance", "stem_a"]).to_csv(args.out, index=False, lineterminator="\n")
 
     print(f"{len(index)} imagens, {len(pairs)} pares com distância <= {max(THRESHOLDS)} de 64 bits")
     print(count_by_threshold(pairs).to_string(index=False))

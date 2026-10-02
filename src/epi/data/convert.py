@@ -56,9 +56,13 @@ def scaled_size(width: int, height: int, max_side: int) -> tuple[int, int]:
     return round(width * scale), round(height * scale)
 
 
+def image_size(path: Path) -> tuple[int, int]:
+    with Image.open(path) as image:
+        return image.size
+
+
 def check_image_size(sample: Sample) -> None:
-    with Image.open(sample.image_path) as image:
-        size = image.size
+    size = image_size(sample.image_path)
     if size != (sample.width, sample.height):
         raise ValueError(f"{sample.stem}: imagem {size}, anotação {(sample.width, sample.height)}")
 
@@ -89,11 +93,12 @@ def convert_sample(sample: Sample, out_dir: Path, max_side: int) -> ConvertedSam
     boxes = [box for box in converted if box is not None]
 
     labels = "".join(f"{box.to_line()}\n" for box in boxes)
-    (out_dir / "labels" / f"{sample.stem}.txt").write_text(labels)
+    (out_dir / "labels" / f"{sample.stem}.txt").write_text(labels, newline="\n")
 
     width, height = scaled_size(sample.width, sample.height, max_side)
     image_path = out_dir / "images" / f"{sample.stem}.jpg"
-    if not image_path.exists():
+    # Reaproveita a imagem de uma execução anterior só se ela tiver o tamanho pedido agora.
+    if not image_path.exists() or image_size(image_path) != (width, height):
         write_resized_jpeg(sample.image_path, image_path, (width, height))
 
     return ConvertedSample(

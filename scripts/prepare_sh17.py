@@ -97,8 +97,8 @@ def main() -> None:
     results = convert_all(samples, args.out, args.max_side, args.workers)
     index = build_index(samples, results, official)
     boxes = build_boxes(results)
-    index.to_csv(args.out / "index.csv", index=False)
-    boxes.to_csv(args.out / "boxes.csv", index=False)
+    index.to_csv(args.out / "index.csv", index=False, lineterminator="\n")
+    boxes.to_csv(args.out / "boxes.csv", index=False, lineterminator="\n")
 
     count_columns = [count_column(name) for name in CLASSES]
     print(boxes["class_name"].value_counts().reindex(CLASSES).to_string())
