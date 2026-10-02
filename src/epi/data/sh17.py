@@ -28,21 +28,22 @@ class Sample:
     pexels_id: int
 
 
+def read_box(obj: ET.Element) -> Box:
+    bndbox = obj.find("bndbox")
+    return Box(
+        name=obj.findtext("name"),
+        xmin=float(bndbox.findtext("xmin")),
+        ymin=float(bndbox.findtext("ymin")),
+        xmax=float(bndbox.findtext("xmax")),
+        ymax=float(bndbox.findtext("ymax")),
+    )
+
+
 def read_voc(xml_path: Path) -> tuple[int, int, list[Box]]:
     root = ET.parse(xml_path).getroot()
     size = root.find("size")
     width, height = int(size.findtext("width")), int(size.findtext("height"))
-    boxes = [
-        Box(
-            name=obj.findtext("name"),
-            xmin=float(obj.find("bndbox").findtext("xmin")),
-            ymin=float(obj.find("bndbox").findtext("ymin")),
-            xmax=float(obj.find("bndbox").findtext("xmax")),
-            ymax=float(obj.find("bndbox").findtext("ymax")),
-        )
-        for obj in root.iter("object")
-    ]
-    return width, height, boxes
+    return width, height, [read_box(obj) for obj in root.iter("object")]
 
 
 def read_metadata(json_path: Path) -> tuple[int, int]:

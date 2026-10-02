@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
 def write_image_lists(index: pd.DataFrame, dataset_dir: Path) -> None:
     for split, rows in index.groupby("split"):
         lines = [f"./images/{stem}.jpg" for stem in sorted(rows["stem"])]
-        (dataset_dir / f"{split}.txt").write_text("\n".join(lines) + "\n")
+        (dataset_dir / f"{split}.txt").write_text("\n".join(lines) + "\n", newline="\n")
 
 
 def summarize(index: pd.DataFrame, splits: list[str]) -> pd.DataFrame:
@@ -49,7 +49,9 @@ def main() -> None:
 
     write_image_lists(index, args.dataset)
     args.split_csv.parent.mkdir(parents=True, exist_ok=True)
-    index[["stem", "photographer_id", "split"]].sort_values("stem").to_csv(args.split_csv, index=False)
+    index[["stem", "photographer_id", "split"]].sort_values("stem").to_csv(
+        args.split_csv, index=False, lineterminator="\n"
+    )
 
     table = summarize(index, list(fractions))
     shares = (table / table.sum() * 100).round(1)

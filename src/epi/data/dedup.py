@@ -20,8 +20,9 @@ def dhash(gray: np.ndarray, hash_size: int = HASH_SIZE) -> np.uint64:
 
 
 def hash_file(path: Path) -> np.uint64:
+    # imdecode com np.fromfile aceita caminhos não ASCII no Windows, ao contrário de imread.
     # REDUCED_GRAYSCALE_4 decodifica o JPEG já em 1/4 da resolução, o que basta para um hash 9x8.
-    gray = cv2.imread(str(path), cv2.IMREAD_REDUCED_GRAYSCALE_4)
+    gray = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_REDUCED_GRAYSCALE_4)
     if gray is None:
         raise ValueError(f"não foi possível ler {path}")
     return dhash(gray)

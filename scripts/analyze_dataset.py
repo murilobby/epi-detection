@@ -106,7 +106,7 @@ def plot_concentration(index: pd.DataFrame, path: Path) -> None:
 
 
 def save_table(table: pd.DataFrame, path: Path, title: str) -> None:
-    table.to_csv(path)
+    table.to_csv(path, lineterminator="\n")
     print(f"\n{title}\n{table.to_string()}")
 
 
