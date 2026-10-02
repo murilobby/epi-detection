@@ -1,0 +1,5 @@
+class_name,instances,images_with_class,instances_train,instances_val,instances_test,share_pct,largest_to_class_ratio
+person,13802,7617,9653,2081,2068,50.7,1.0
+head,11985,6495,8393,1793,1799,44.0,1.2
+helmet,927,466,650,139,138,3.4,14.9
+safety-vest,530,213,371,80,79,1.9,26.0
