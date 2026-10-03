@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from epi.data.split import BALANCE_COLUMNS, assign_groups, group_totals
+from epi.data.split import assign_groups, balance_table, group_totals
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,9 +27,7 @@ def write_image_lists(index: pd.DataFrame, dataset_dir: Path) -> None:
 
 
 def summarize(index: pd.DataFrame, splits: list[str]) -> pd.DataFrame:
-    count_columns = [column for column in BALANCE_COLUMNS if column != "images"]
-    table = index.groupby("split")[count_columns].sum()
-    table.insert(0, "images", index.groupby("split").size())
+    table = balance_table(index).groupby(index["split"]).sum()
     table.insert(0, "photographers", index.groupby("split")["photographer_id"].nunique())
     return table.reindex(splits)
 
