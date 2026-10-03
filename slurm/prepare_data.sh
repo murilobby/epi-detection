@@ -17,8 +17,7 @@ export YOLO_CONFIG_DIR="$HOME/.ultralytics"
 cd "$SLURM_SUBMIT_DIR"
 
 echo "nó: $(hostname) | núcleos: $SLURM_CPUS_PER_TASK | commit: $(git rev-parse --short HEAD)"
-mkdir -p data/raw/sh17
-tar -xf data/raw/sh17.zip -C data/raw/sh17
+python -m zipfile -e data/raw/sh17.zip data/raw/sh17
 python scripts/prepare_sh17.py --workers "$SLURM_CPUS_PER_TASK"
 python scripts/split_dataset.py
 python scripts/dataset_fingerprint.py

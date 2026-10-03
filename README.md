@@ -23,9 +23,9 @@ Uso o [SH17](https://github.com/ahmadmughees/SH17dataset) (Ahmad e Rahimi, 2024,
 Para baixar e preparar (download de 13 GB; cerca de 29 GB em disco ao final):
 
 ```powershell
-mkdir data\raw\sh17
+mkdir data\raw
 curl.exe -L -C - -o data\raw\sh17.zip https://www.kaggle.com/api/v1/datasets/download/mugheesahmad/sh17-dataset-for-ppe-detection
-tar -xf data\raw\sh17.zip -C data\raw\sh17
+python -m zipfile -e data\raw\sh17.zip data\raw\sh17
 python scripts\prepare_sh17.py
 python scripts\split_dataset.py
 python scripts\find_near_duplicates.py
