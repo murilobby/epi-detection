@@ -16,6 +16,7 @@ conda activate epi
 # O OpenCV precisa da libGL para carregar, e os nós de cálculo não a têm; ela vem do ambiente conda.
 export LD_LIBRARY_PATH="$CONDA_PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export YOLO_CONFIG_DIR="$HOME/.ultralytics"
+export PYTHONUNBUFFERED=1
 cd "$SLURM_SUBMIT_DIR"
 
 echo "nó: $(hostname) | núcleos: $SLURM_CPUS_PER_TASK | commit: $(git rev-parse --short HEAD)"
