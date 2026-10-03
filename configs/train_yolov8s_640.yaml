@@ -1,0 +1,22 @@
+model: models/yolov8s.pt
+data: configs/sh17_epi.yaml
+project: runs/train
+name: yolov8s_640
+
+imgsz: 640
+epochs: 100
+patience: 30
+batch: 16
+nbs: 64
+workers: 8
+
+optimizer: SGD
+lr0: 0.01
+lrf: 0.01
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3
+
+seed: 0
+deterministic: true
+amp: true
