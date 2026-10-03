@@ -38,11 +38,15 @@ def load_config(path: Path, overrides: list[str]) -> dict:
     return config
 
 
-def git_state() -> dict[str, str | bool]:
+def git_state() -> dict[str, str | bool | None]:
     def run(*args: str) -> str:
         return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout.strip()
 
-    return {"commit": run("rev-parse", "HEAD"), "uncommitted_changes": bool(run("status", "--porcelain"))}
+    # Nós de cálculo de cluster podem não ter git; o treino não deve falhar por isso.
+    try:
+        return {"commit": run("rev-parse", "HEAD"), "uncommitted_changes": bool(run("status", "--porcelain"))}
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return {"commit": None, "uncommitted_changes": None}
 
 
 def environment() -> dict[str, object]:
