@@ -1,4 +1,4 @@
 split,photographers,images,top1_pct,top10_pct,median_images_per_photographer
-train,282,5669,13.9,53.2,1.0
-val,324,1216,7.6,41.1,1.0
-test,316,1214,7.2,41.8,1.0
+train,319,5641,14.0,53.5,1.0
+val,306,1232,7.1,41.2,1.0
+test,297,1226,7.5,44.7,1.0
