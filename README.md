@@ -49,6 +49,48 @@ O que a análise mostrou ([reports/dataset](reports/dataset)):
 
 ![Tamanho das caixas em 640 px](reports/dataset/box_sizes_640.png)
 
+## Treino
+
+Fiz fine-tuning do YOLOv8s pré-treinado no COCO, com a configuração em [configs/train_yolov8s_640.yaml](configs/train_yolov8s_640.yaml):
+
+```powershell
+python scripts\download_weights.py
+python scripts\train.py configs\train_yolov8s_640.yaml
+python scripts\summarize_training.py
+```
+
+Escolhi o YOLOv8s em vez do YOLOv8n medindo os dois na minha GPU com [scripts/profile_models.py](scripts/profile_models.py) ([saída](reports/train/profile_models_rtx3060ti.txt)). O s tem 11,2 M de parâmetros e 28,6 GFLOPs, contra 3,2 M e 8,7 GFLOPs do n. Com batch 1, que é como o vídeo é processado, os dois levaram cerca de 8 ms por quadro, e esse tempo foi praticamente igual ao que a CPU gasta só para lançar os kernels na GPU. Com batch 32, em que a GPU fica de fato ocupada, o s custou 2,24 ms por imagem e o n, 1,14 ms. Ou seja, quadro a quadro, a capacidade extra do s sai quase de graça.
+
+Decisões da configuração:
+
+- Imagem de 640 px, batch 16 com acumulação de gradiente até um batch efetivo de 64.
+- SGD com taxa de aprendizado inicial de 0,01, fixado em vez do modo automático, que escolhe o otimizador pelo número de iterações e mudaria conforme o batch.
+- Até 100 épocas, com parada antecipada após 30 épocas sem melhora do mAP50-95 na validação.
+- Semente 0 e modo determinístico: repetir o treino na mesma máquina dá o mesmo resultado.
+
+Treinei na RTX 3060 Ti. O treino parou na época 78; a melhor época foi a 48, e levou 1,3 hora contando a validação de cada época. Na validação, o modelo da época 48 chegou a **mAP50 de 0,661 e mAP50-95 de 0,452**. O desempenho no conjunto de teste, que não foi usado em nenhuma decisão, fica para a etapa de avaliação. O registro completo, com configuração, versões e commit usados, está em [reports/train/yolov8s_640](reports/train/yolov8s_640).
+
+![mAP por época](reports/train/yolov8s_640/metrics.png)
+
+Por volta da época 45, as perdas de validação de caixa e de distribuição param de cair enquanto as de treino continuam caindo: o modelo começa a se ajustar ao treino sem ganho em imagens novas, e a parada antecipada agiu nesse platô.
+
+![Perdas por época](reports/train/yolov8s_640/losses.png)
+
+## Cluster
+
+Também preparei o projeto para o supercomputador do NPAD/UFRN, com os jobs Slurm em [slurm/](slurm). O dataset gerado lá é idêntico byte a byte ao do meu PC, conferido com [scripts/dataset_fingerprint.py](scripts/dataset_fingerprint.py), que calcula um SHA-256 de cada parte.
+
+```bash
+python scripts/download_weights.py
+mkdir -p logs
+sbatch slurm/prepare_data.sh
+sbatch slurm/train.sh configs/train_yolov8s_640.yaml
+```
+
+Os nós de cálculo não têm git nem a `libGL` de que o OpenCV precisa, então instalei os dois no ambiente conda e os jobs carregam a `libGL` de lá. Os pesos são baixados antes, no nó de login, porque os nós de cálculo podem não ter internet.
+
+Agradeço ao Núcleo de Processamento de Alto Desempenho da UFRN (NPAD/UFRN) pelos recursos computacionais.
+
 ## Licença
 
 AGPL-3.0, porque o projeto usa o Ultralytics YOLO, distribuído sob essa licença.
