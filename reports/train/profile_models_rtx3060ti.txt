@@ -1,0 +1,11 @@
+python scripts/profile_models.py (commit 06de181), 2026-10-03
+
+GPU: NVIDIA GeForce RTX 3060 Ti | 200 medições por linha
+yolov8n: 3.2 M parâmetros, 8.7 GFLOPs em 640 px
+  batch   1:    8.83 ms na GPU |   8.77 ms da CPU para lançar |  8.83 ms por imagem
+  batch  32:   36.54 ms na GPU |   8.14 ms da CPU para lançar |  1.14 ms por imagem
+  VRAM de pico: 344 MB
+yolov8s: 11.2 M parâmetros, 28.6 GFLOPs em 640 px
+  batch   1:    8.16 ms na GPU |   8.13 ms da CPU para lançar |  8.16 ms por imagem
+  batch  32:   71.74 ms na GPU |   7.90 ms da CPU para lançar |  2.24 ms por imagem
+  VRAM de pico: 703 MB
