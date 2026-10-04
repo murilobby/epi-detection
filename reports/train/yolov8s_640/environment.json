@@ -1,0 +1,14 @@
+{
+  "config_file": "configs\\train_yolov8s_640.yaml",
+  "overrides": [],
+  "host": "DESKTOP-I313HGV",
+  "python": "3.11.9",
+  "torch": "2.14.1+cu126",
+  "cuda": "12.6",
+  "ultralytics": "8.4.171",
+  "gpu": "NVIDIA GeForce RTX 3060 Ti",
+  "git": {
+    "commit": "22b94ca4357d7b24ea3aaec862b30ce22550eed6",
+    "uncommitted_changes": false
+  }
+}

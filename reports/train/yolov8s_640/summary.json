@@ -1,0 +1,11 @@
+{
+  "epochs_run": 78,
+  "best_epoch": 48,
+  "hours_including_validation": 1.33,
+  "val_at_best_epoch": {
+    "precision": 0.7365,
+    "recall": 0.6524,
+    "mAP50": 0.6606,
+    "mAP50-95": 0.4521
+  }
+}
