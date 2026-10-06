@@ -1,0 +1,108 @@
+{
+  "width": 3840,
+  "height": 2160,
+  "fps_video": 30.0,
+  "frames": 235,
+  "smoothing_window": 15,
+  "config": {
+    "weights": "runs/train/yolov8s_640/weights/best.pt",
+    "tracker": "configs/bytetrack.yaml",
+    "imgsz": 640,
+    "person_conf": 0.1,
+    "ppe_conf": 0.217,
+    "smoothing_seconds": 0.5,
+    "smoothing_ratio": 0.7,
+    "min_head_side_px": 32
+  },
+  "gpu": "NVIDIA GeForce RTX 3060 Ti",
+  "track_ids": 8,
+  "transitions": {
+    "helmet_raw": 0,
+    "helmet": 0,
+    "vest_raw": 0,
+    "vest": 0
+  },
+  "timing_ms_median": {
+    "decode": 9.67,
+    "model": 13.05,
+    "track_and_ppe": 1.33,
+    "draw_and_write": 46.66,
+    "total": 71.21
+  },
+  "fps_model": 76.6,
+  "fps_pipeline": 14.0,
+  "per_track": [
+    {
+      "track_id": 1,
+      "first_s": 0.0,
+      "last_s": 7.8,
+      "visible_frames": 235,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 229
+    },
+    {
+      "track_id": 2,
+      "first_s": 0.0,
+      "last_s": 7.8,
+      "visible_frames": 235,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 229
+    },
+    {
+      "track_id": 3,
+      "first_s": 0.0,
+      "last_s": 7.8,
+      "visible_frames": 235,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    },
+    {
+      "track_id": 4,
+      "first_s": 0.0,
+      "last_s": 7.8,
+      "visible_frames": 235,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    },
+    {
+      "track_id": 5,
+      "first_s": 0.0667,
+      "last_s": 7.4333,
+      "visible_frames": 222,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    },
+    {
+      "track_id": 11,
+      "first_s": 2.7667,
+      "last_s": 7.8,
+      "visible_frames": 152,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 146
+    },
+    {
+      "track_id": 12,
+      "first_s": 4.0667,
+      "last_s": 4.8667,
+      "visible_frames": 17,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    },
+    {
+      "track_id": 14,
+      "first_s": 7.1667,
+      "last_s": 7.8,
+      "visible_frames": 20,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    }
+  ]
+}

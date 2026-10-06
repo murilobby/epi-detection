@@ -118,6 +118,60 @@ Falsos positivos de capacete de maior confiança:
 
 Os exemplos são recortes de imagens do SH17 (Pexels), sob CC BY-NC-SA 4.0.
 
+## Rastreamento
+
+```powershell
+mkdir data\videos
+curl.exe -L -o data\videos\warehouse_10817415.mp4 https://www.pexels.com/download/video/10817415/
+curl.exe -L -o data\videos\site_30331740.mp4 https://www.pexels.com/download/video/30331740/
+python scripts\evaluate.py --split val --out reports\eval\yolov8s_640_val
+python scripts\calibrate_head_size.py
+python scripts\track_video.py data\videos\warehouse_10817415.mp4
+python scripts\track_video.py data\videos\site_30331740.mp4
+python scripts\analyze_tracking.py reports\track\warehouse_10817415 reports\track\site_30331740
+python scripts\snapshot.py runs\track\warehouse_10817415.mp4 reports\track\warehouse_10817415\snapshot.jpg --time-s 9
+```
+
+Em cada quadro, o detector encontra pessoas, cabeças, capacetes e coletes; o ByteTrack dá um ID a cada pessoa; e cada cabeça, capacete e colete é atribuído à pessoa que o contém, com as regras em [src/epi/track/ppe.py](src/epi/track/ppe.py). A configuração está em [configs/track.yaml](configs/track.yaml).
+
+Decisões:
+
+- **Pessoas entram no ByteTrack a partir de confiança 0,1.** A segunda etapa de associação do ByteTrack usa detecções fracas para manter o ID de quem está parcialmente encoberto. Cabeça, capacete e colete usam o limiar de 0,217 escolhido na validação.
+- **Usei os limiares do ByteTrack original** ([configs/bytetrack.yaml](configs/bytetrack.yaml)): um ID novo só nasce com confiança acima de 0,6. Com os 0,25 padrão do Ultralytics, detecções fracas de prateleiras viravam pessoas: o vídeo do armazém tinha 5 IDs para 2 pessoas.
+- **O sistema só afirma que falta um EPI quando consegue enxergá-lo.** Se a cabeça da pessoa tem menos de 32 px na entrada do modelo, ou não foi detectada, o estado é "indefinido", e não "não". Calibrei esse limite na validação com [scripts/calibrate_head_size.py](scripts/calibrate_head_size.py): abaixo de 32 px, o recall de capacete fica em 32% ou menos; acima, entre 70% e 92% ([calibração](reports/track/head_size_calibration.csv)). Com faixas de 8 px, o limite saía 24 px, mas decidido por uma faixa com só 6 capacetes; usei faixas de 16 px, que dão a escolha mais conservadora.
+- **O estado é suavizado no tempo:** só muda quando 70% das observações decisivas do último meio segundo concordam.
+
+Testei em dois vídeos do Pexels, [um armazém](https://www.pexels.com/video/workers-with-safety-helmets-in-warehouse-10817415/) (1080p, 14 s, de Низам DRedd) e [uma obra](https://www.pexels.com/video/construction-workers-collaborating-on-site-30331740/) (4K, 7,8 s, de aksinfo7 universe). Vídeos públicos não têm anotação de rastreamento, então não calculei métricas como MOTA ou IDF1: conferi cada ID nos quadros anotados.
+
+![Armazém](reports/track/warehouse_10817415/snapshot.jpg)
+
+A cor da caixa de cada pessoa indica o estado do capacete: verde para "sim", vermelho para "não" e cinza para "indefinido". As caixas finas brancas são os capacetes e coletes atribuídos a ela.
+
+**Armazém:** as duas pessoas mantiveram o mesmo ID nos 421 quadros. Ambas ficaram com capacete "sim" em 98,6% dos quadros (os primeiros 6 são o preenchimento da janela de suavização), sem nenhum alarme falso. O único evento registrado é verdadeiro: a pessoa de jaleco branco ficou 13,8 s sem colete. No estado bruto, o colete alternou 10 vezes entre "sim" e "não"; depois da suavização, nenhuma. Um ID extra durou 1 s sobre uma prateleira e ficou "indefinido", sem gerar evento.
+
+![Linha do tempo do armazém](reports/track/warehouse_10817415/timeline.png)
+
+**Obra:** câmera parada, com seis pessoas rastreadas durante a maior parte do vídeo.
+
+- Os três trabalhadores de capacete à frente ficaram "sim" o tempo todo, e os dois sem colete tiveram o colete marcado como "não", corretamente.
+- Um trabalhador ao fundo, de capacete e colete, tem cabeça de 7,7 px na entrada do modelo. Sem o limite de tamanho, ele gerava dois alarmes falsos; com o limite, fica "indefinido".
+- **O custo:** o homem sentado, de boné, é uma violação real, mas a cabeça dele mede 27 px e também ficou "indefinido". Num vídeo 4K reduzido para 640 px, o sistema prefere não acusar a acusar sem conseguir ver. Rodar a inferência em resolução maior é o caminho para julgar essas pessoas.
+- Um trabalhador de colete laranja, parcialmente atrás de outro, ficou com colete "não": o colete encoberto não foi detectado.
+
+Os quadros anotados da obra não estão no repositório porque as pessoas são identificáveis, e a licença do Pexels não permite mostrá-las de forma negativa.
+
+**Velocidade na RTX 3060 Ti**, em mediana por quadro ([resumo](reports/track/warehouse_10817415/summary.json)):
+
+| Etapa | Armazém (1080p) | Obra (4K) |
+|---|---|---|
+| Ler o quadro | 2,5 ms | 9,7 ms |
+| Rede, com pré-processamento e NMS | 16,3 ms (61 FPS) | 13,1 ms |
+| Rastreamento e associação | 0,9 ms | 1,3 ms |
+| Desenhar e gravar o vídeo | 15,4 ms | 46,7 ms |
+| **Pipeline completo** | **34,2 ms (29 FPS)** | **71,2 ms (14 FPS)** |
+
+Em 1080p, gravar o vídeo anotado custa quase tanto quanto a rede. As medidas variam entre execuções: em quatro execuções no armazém, a rede ficou entre 55 e 67 FPS e o pipeline entre 23 e 29 FPS.
+
 ## Cluster
 
 Também preparei o projeto para o supercomputador do NPAD/UFRN, com os jobs Slurm em [slurm/](slurm). O dataset gerado lá é idêntico byte a byte ao do meu PC, conferido com [scripts/dataset_fingerprint.py](scripts/dataset_fingerprint.py), que calcula um SHA-256 de cada parte.

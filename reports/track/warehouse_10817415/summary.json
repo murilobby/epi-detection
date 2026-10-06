@@ -1,0 +1,63 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "fps_video": 29.97002997002997,
+  "frames": 421,
+  "smoothing_window": 15,
+  "config": {
+    "weights": "runs/train/yolov8s_640/weights/best.pt",
+    "tracker": "configs/bytetrack.yaml",
+    "imgsz": 640,
+    "person_conf": 0.1,
+    "ppe_conf": 0.217,
+    "smoothing_seconds": 0.5,
+    "smoothing_ratio": 0.7,
+    "min_head_side_px": 32
+  },
+  "gpu": "NVIDIA GeForce RTX 3060 Ti",
+  "track_ids": 3,
+  "transitions": {
+    "helmet_raw": 0,
+    "helmet": 0,
+    "vest_raw": 10,
+    "vest": 0
+  },
+  "timing_ms_median": {
+    "decode": 2.52,
+    "model": 16.28,
+    "track_and_ppe": 0.94,
+    "draw_and_write": 15.4,
+    "total": 34.19
+  },
+  "fps_model": 61.4,
+  "fps_pipeline": 29.2,
+  "per_track": [
+    {
+      "track_id": 1,
+      "first_s": 0.0,
+      "last_s": 14.014,
+      "visible_frames": 421,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 415
+    },
+    {
+      "track_id": 2,
+      "first_s": 0.0,
+      "last_s": 14.014,
+      "visible_frames": 421,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    },
+    {
+      "track_id": 3,
+      "first_s": 9.2092,
+      "last_s": 10.1768,
+      "visible_frames": 30,
+      "without_helmet_frames": 0,
+      "without_helmet_raw_frames": 0,
+      "without_vest_frames": 0
+    }
+  ]
+}
