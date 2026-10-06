@@ -1,0 +1,24 @@
+error,class_name,cause,count
+FP,head,classe trocada,11
+FP,head,duplicata,27
+FP,head,fundo,154
+FP,head,localização,49
+FP,helmet,classe trocada,2
+FP,helmet,duplicata,5
+FP,helmet,fundo,32
+FP,helmet,localização,1
+FP,person,classe trocada,1
+FP,person,duplicata,121
+FP,person,fundo,198
+FP,person,localização,175
+FP,safety-vest,duplicata,4
+FP,safety-vest,fundo,43
+FP,safety-vest,localização,6
+FN,head,classe trocada,2
+FN,head,não detectado,319
+FN,helmet,classe trocada,9
+FN,helmet,não detectado,69
+FN,person,classe trocada,4
+FN,person,não detectado,321
+FN,safety-vest,classe trocada,1
+FN,safety-vest,não detectado,44
