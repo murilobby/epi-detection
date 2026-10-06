@@ -1,0 +1,15 @@
+weights: runs/train/yolov8s_640/weights/best.pt
+tracker: configs/bytetrack.yaml
+imgsz: 640
+
+# Pessoas entram no ByteTrack a partir da confiança mínima dele, porque a segunda etapa de
+# associação usa detecções fracas; cabeça, capacete e colete usam o limiar escolhido na validação.
+person_conf: 0.1
+ppe_conf: 0.217
+
+smoothing_seconds: 0.5
+smoothing_ratio: 0.7
+
+# Abaixo deste lado de cabeça (em pixels na entrada do modelo), o recall de capacete na validação fica
+# abaixo de 50% e a falta de detecção não prova a falta de EPI. Calculado por scripts/calibrate_head_size.py.
+min_head_side_px: 32
