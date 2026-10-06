@@ -1,8 +1,30 @@
 # Detecção de EPIs com rastreamento
 
-Projeto de visão computacional com o objetivo de detectar capacete e colete em trabalhadores, atribuir um ID a cada pessoa com ByteTrack e registrar quem ficou sem capacete e por quanto tempo.
+Sistema de visão computacional que detecta capacete e colete em trabalhadores, dá um ID a cada pessoa ao longo de um vídeo com ByteTrack e registra quem ficou sem cada EPI e por quanto tempo. Fiz o fine-tuning de um YOLOv8s no dataset público SH17, avaliei no conjunto de teste, analisei os erros e montei o rastreamento sobre o detector.
 
-Em desenvolvimento. Resultados, instruções de reprodução e limitações serão documentados conforme as etapas forem concluídas.
+![Rastreamento no armazém](reports/track/warehouse_10817415/snapshot.jpg)
+
+A cor da caixa de cada pessoa indica o estado do capacete: verde para "sim", vermelho para "não" e cinza para "indefinido". As caixas finas brancas são os capacetes e coletes atribuídos a ela.
+
+## Resultados em resumo
+
+- **Detecção, no conjunto de teste:** mAP50 de 0,653 e mAP50-95 de 0,451. Por classe, o mAP50 foi de 0,864 para pessoa, 0,846 para cabeça, 0,483 para capacete e 0,422 para colete.
+- **Dados:** a divisão oficial do SH17 vazava fotos da mesma sessão entre treino e validação em 92% das imagens de validação. Refiz a divisão agrupando por fotógrafo.
+- **Erros:** o recall de capacete vai de 22% em objetos pequenos a 86% em grandes, e a revisão dos falsos positivos encontrou capacetes reais sem anotação no dataset.
+- **Rastreamento:** IDs estáveis do começo ao fim no vídeo do armazém e nenhum alarme falso de capacete nos dois vídeos testados. O sistema só acusa a falta de um EPI quando a cabeça da pessoa é grande o bastante para o detector enxergá-lo.
+- **Velocidade, numa RTX 3060 Ti:** a rede roda a cerca de 61 FPS e o pipeline completo, gravando o vídeo anotado, a 23–29 FPS em 1080p.
+
+## Estrutura
+
+```
+configs/   configurações do dataset, do treino, do rastreamento e do ByteTrack, e a divisão usada
+scripts/   um script por etapa, na ordem deste README
+src/epi/   código usado pelos scripts: dados, avaliação, rastreamento e gráficos
+reports/   resultados versionados: análises, registro do treino, métricas e relatórios do rastreamento
+slurm/     jobs para o cluster do NPAD
+```
+
+Dados, pesos, vídeos e saídas de treino ficam em `data/`, `models/` e `runs/`, que não são versionados; os comandos abaixo recriam tudo.
 
 ## Ambiente
 
@@ -68,7 +90,7 @@ Decisões da configuração:
 - Até 100 épocas, com parada antecipada após 30 épocas sem melhora do mAP50-95 na validação.
 - Semente 0 e modo determinístico: repetir o treino na mesma máquina dá o mesmo resultado.
 
-Treinei na RTX 3060 Ti. O treino parou na época 78; a melhor época foi a 48, e levou 1,3 hora contando a validação de cada época. Na validação, o modelo da época 48 chegou a **mAP50 de 0,661 e mAP50-95 de 0,452**. O desempenho no conjunto de teste, que não foi usado em nenhuma decisão, fica para a etapa de avaliação. O registro completo, com configuração, versões e commit usados, está em [reports/train/yolov8s_640](reports/train/yolov8s_640).
+Treinei na RTX 3060 Ti. O treino parou na época 78; a melhor época foi a 48, e levou 1,3 hora contando a validação de cada época. Na validação, o modelo da época 48 chegou a **mAP50 de 0,661 e mAP50-95 de 0,452**. O desempenho no conjunto de teste está na seção [Avaliação](#avaliação). O registro completo, com configuração, versões e commit usados, está em [reports/train/yolov8s_640](reports/train/yolov8s_640).
 
 ![mAP por época](reports/train/yolov8s_640/metrics.png)
 
@@ -101,7 +123,7 @@ Avaliei o modelo uma única vez no conjunto de teste, que não participou de nen
 
 O que os erros mostram:
 
-- **Tamanho é o fator principal.** O recall de capacete é de 22% para objetos pequenos (menos de 32 px), 76% para médios e 86% para grandes, e 85 dos 141 capacetes do teste são pequenos. Todas as classes seguem o mesmo padrão, como a análise do dataset indicava.
+- **O recall cai muito com o tamanho do objeto.** O recall de capacete é de 22% para objetos pequenos (menos de 32 px), 76% para médios e 86% para grandes, e 85 dos 141 capacetes do teste são pequenos. Todas as classes seguem o mesmo padrão, como a análise do dataset indicava.
 - **O modelo quase não troca uma classe por outra; ele deixa de detectar.** Dos 78 capacetes perdidos, 69 não foram detectados como nada e 9 viraram cabeça.
 - **Em 44 dos 78 capacetes perdidos (56%), o modelo detectou a cabeça no mesmo lugar**, mas não o capacete.
 - **Revisei um por um os 40 falsos positivos de capacete** ([revisão](reports/eval/yolov8s_640/helmet_fp_review.csv)): 22 são outros itens na cabeça (bonés, capuzes de macacão de proteção, máscaras contra poeira), 7 são erros de enquadramento sobre objetos anotados, 5 são fundo, 4 são capacetes reais sem anotação e 2 são ambíguos. Se esses 4 estivessem anotados, a precisão de capacete subiria de 0,612 para cerca de 0,650. É uma estimativa por inspeção visual, não uma medida.
@@ -132,7 +154,7 @@ python scripts\analyze_tracking.py reports\track\warehouse_10817415 reports\trac
 python scripts\snapshot.py runs\track\warehouse_10817415.mp4 reports\track\warehouse_10817415\snapshot.jpg --time-s 9
 ```
 
-Em cada quadro, o detector encontra pessoas, cabeças, capacetes e coletes; o ByteTrack dá um ID a cada pessoa; e cada cabeça, capacete e colete é atribuído à pessoa que o contém, com as regras em [src/epi/track/ppe.py](src/epi/track/ppe.py). A configuração está em [configs/track.yaml](configs/track.yaml).
+Em cada quadro, o detector encontra pessoas, cabeças, capacetes e coletes; o ByteTrack dá um ID a cada pessoa; e cada cabeça, capacete e colete é atribuído à pessoa que o contém, com as regras em [src/epi/track/ppe.py](src/epi/track/ppe.py). A configuração está em [configs/track.yaml](configs/track.yaml). O vídeo anotado vai para `runs/track/`, e o estado de cada pessoa em cada quadro, os trechos sem EPI e um resumo com tempos e FPS vão para [reports/track](reports/track).
 
 Decisões:
 
@@ -143,11 +165,7 @@ Decisões:
 
 Testei em dois vídeos do Pexels, [um armazém](https://www.pexels.com/video/workers-with-safety-helmets-in-warehouse-10817415/) (1080p, 14 s, de Низам DRedd) e [uma obra](https://www.pexels.com/video/construction-workers-collaborating-on-site-30331740/) (4K, 7,8 s, de aksinfo7 universe). Vídeos públicos não têm anotação de rastreamento, então não calculei métricas como MOTA ou IDF1: conferi cada ID nos quadros anotados.
 
-![Armazém](reports/track/warehouse_10817415/snapshot.jpg)
-
-A cor da caixa de cada pessoa indica o estado do capacete: verde para "sim", vermelho para "não" e cinza para "indefinido". As caixas finas brancas são os capacetes e coletes atribuídos a ela.
-
-**Armazém:** as duas pessoas mantiveram o mesmo ID nos 421 quadros. Ambas ficaram com capacete "sim" em 98,6% dos quadros (os primeiros 6 são o preenchimento da janela de suavização), sem nenhum alarme falso. O único evento registrado é verdadeiro: a pessoa de jaleco branco ficou 13,8 s sem colete. No estado bruto, o colete alternou 10 vezes entre "sim" e "não"; depois da suavização, nenhuma. Um ID extra durou 1 s sobre uma prateleira e ficou "indefinido", sem gerar evento.
+**Armazém** (imagem do topo): as duas pessoas mantiveram o mesmo ID nos 421 quadros. Ambas ficaram com capacete "sim" em 98,6% dos quadros (os primeiros 6 são o preenchimento da janela de suavização), sem nenhum alarme falso. O único evento registrado é verdadeiro: a pessoa de jaleco branco ficou 13,8 s sem colete. No estado bruto, o colete alternou 10 vezes entre "sim" e "não"; depois da suavização, nenhuma. Um ID extra durou 1 s sobre uma prateleira e ficou "indefinido", sem gerar evento.
 
 ![Linha do tempo do armazém](reports/track/warehouse_10817415/timeline.png)
 
@@ -185,7 +203,27 @@ sbatch slurm/train.sh configs/train_yolov8s_640.yaml
 
 Os nós de cálculo não têm git nem a `libGL` de que o OpenCV precisa, então instalei os dois no ambiente conda e os jobs carregam a `libGL` de lá. Os pesos são baixados antes, no nó de login, porque os nós de cálculo podem não ter internet.
 
+Testei o treino numa GPU H200 pela fila de testes do cluster, mas a fila da partição tinha cerca de 27 jobs esperando. Como o treino na minha GPU levava 1h20, treinei localmente.
+
 Agradeço ao Núcleo de Processamento de Alto Desempenho da UFRN (NPAD/UFRN) pelos recursos computacionais.
+
+## Limitações
+
+- **Domínio.** O SH17 é formado por fotos de banco de imagens, muitas fora de obras ou fábricas, em geral tiradas de perto. Uma câmera de segurança industrial, alta e distante, produziria mais objetos pequenos, justamente onde o modelo é mais fraco. Para usar o sistema num local real, seria preciso anotar imagens desse local e refazer o fine-tuning.
+- **Capacete e colete têm poucos exemplos.** O teste tem 141 capacetes em 70 imagens e 81 coletes em 32 imagens, então as métricas dessas classes oscilariam com outra amostra, e não calculei intervalos de confiança.
+- **O rastreamento foi verificado só visualmente,** em dois vídeos curtos, sem métricas como MOTA e IDF1.
+- **Pessoas pequenas ficam "indefinido",** como o homem de boné na obra. É a troca escolhida para não gerar alarmes falsos.
+- **EPI encoberto conta como ausente** quando a cabeça da pessoa é visível, como no colete laranja da obra.
+- **O limiar de confiança maximiza o F1 médio,** que pesa falsos positivos e falsos negativos igualmente. Numa aplicação de segurança, deixar de ver uma violação pode custar mais que um alarme falso, e o limiar deveria ser escolhido com quem opera o sistema.
+- **As anotações do SH17 têm erros,** como os capacetes sem anotação encontrados na revisão, então a precisão medida tende a subestimar a real.
+
+## Próximos passos
+
+- Rodar a inferência, ou treinar, em 1280 px, para julgar pessoas pequenas como o homem de boné.
+- Exportar o modelo para ONNX e TensorRT e rodá-lo em C++ ou num dispositivo embarcado como um NVIDIA Jetson. O TensorRT funde camadas e executa a rede fora do Python, o que deve reduzir o custo de lançar kernels, que domina o tempo com batch 1.
+- Gravar o vídeo anotado em paralelo ou com codificação por hardware, que hoje custa quase tanto quanto a rede.
+- Anotar quadros de vídeos reais para medir MOTA e IDF1 e quantificar a queda de desempenho fora do SH17.
+- Calcular intervalos de confiança por bootstrap para as métricas de capacete e colete.
 
 ## Licença
 
