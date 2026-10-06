@@ -1,0 +1,68 @@
+{
+  "weights": "runs\\train\\yolov8s_640\\weights\\best.pt",
+  "split": "test",
+  "imgsz": 640,
+  "confidence_threshold": {
+    "value": 0.2172,
+    "chosen_on": "val",
+    "criterion": "maior F1 médio entre as classes",
+    "val_mean_f1": 0.6896
+  },
+  "iou_threshold_for_counts": 0.5,
+  "all": {
+    "mAP50": 0.6534,
+    "mAP50-95": 0.4514,
+    "precision_macro": 0.6637,
+    "recall_macro": 0.639
+  },
+  "classes": {
+    "person": {
+      "images": 1139,
+      "instances": 2055,
+      "AP50": 0.8638,
+      "AP50-95": 0.6521,
+      "TP": 1730,
+      "FP": 495,
+      "FN": 325,
+      "precision": 0.7775,
+      "recall": 0.8418,
+      "F1": 0.8084
+    },
+    "head": {
+      "images": 972,
+      "instances": 1813,
+      "AP50": 0.8456,
+      "AP50-95": 0.6067,
+      "TP": 1492,
+      "FP": 241,
+      "FN": 321,
+      "precision": 0.8609,
+      "recall": 0.8229,
+      "F1": 0.8415
+    },
+    "helmet": {
+      "images": 70,
+      "instances": 141,
+      "AP50": 0.4826,
+      "AP50-95": 0.3,
+      "TP": 63,
+      "FP": 40,
+      "FN": 78,
+      "precision": 0.6117,
+      "recall": 0.4468,
+      "F1": 0.5164
+    },
+    "safety-vest": {
+      "images": 32,
+      "instances": 81,
+      "AP50": 0.4217,
+      "AP50-95": 0.2468,
+      "TP": 36,
+      "FP": 53,
+      "FN": 45,
+      "precision": 0.4045,
+      "recall": 0.4444,
+      "F1": 0.4235
+    }
+  }
+}

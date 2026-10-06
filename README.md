@@ -76,6 +76,48 @@ Por volta da época 45, as perdas de validação de caixa e de distribuição pa
 
 ![Perdas por época](reports/train/yolov8s_640/losses.png)
 
+## Avaliação
+
+```powershell
+python scripts\evaluate.py
+python scripts\analyze_errors.py
+```
+
+Avaliei o modelo uma única vez no conjunto de teste, que não participou de nenhuma decisão. O limiar de confiança, 0,217, foi escolhido na validação, como o que maximiza o F1 médio das quatro classes. Resultados em [reports/eval/yolov8s_640](reports/eval/yolov8s_640):
+
+| Classe | mAP50 | mAP50-95 | Precisão | Recall | F1 |
+|---|---|---|---|---|---|
+| person | 0,864 | 0,652 | 0,778 | 0,842 | 0,808 |
+| head | 0,846 | 0,607 | 0,861 | 0,823 | 0,842 |
+| helmet | 0,483 | 0,300 | 0,612 | 0,447 | 0,516 |
+| safety-vest | 0,422 | 0,247 | 0,404 | 0,444 | 0,424 |
+| **todas** | **0,653** | **0,451** | 0,664 (média) | 0,639 (média) | |
+
+- O mAP50-95 no teste (0,451) ficou igual ao da validação (0,452): escolher o modelo pela validação não a superajustou.
+- O mAP vem do Ultralytics. Precisão, recall e F1 eu calculei no pipeline de inferência, com uma classe por caixa, casando detecções e anotações por IoU >= 0,5 em ordem de confiança. Para capacete e colete, esses números ficam abaixo dos que o Ultralytics imprime: a validação dele deixa uma mesma caixa ter várias classes (`multi_label=True`), o que explica metade da diferença no recall de capacete. O restante eu não isolei.
+- A matriz de confusão do Ultralytics usa confiança mínima de 0,001, que serve para o mAP mas não representa o uso real. Por isso calculei a minha no limiar de operação.
+
+![Matriz de confusão](reports/eval/yolov8s_640/confusion_matrix.png)
+
+O que os erros mostram:
+
+- **Tamanho é o fator principal.** O recall de capacete é de 22% para objetos pequenos (menos de 32 px), 76% para médios e 86% para grandes, e 85 dos 141 capacetes do teste são pequenos. Todas as classes seguem o mesmo padrão, como a análise do dataset indicava.
+- **O modelo quase não troca uma classe por outra; ele deixa de detectar.** Dos 78 capacetes perdidos, 69 não foram detectados como nada e 9 viraram cabeça.
+- **Em 44 dos 78 capacetes perdidos (56%), o modelo detectou a cabeça no mesmo lugar**, mas não o capacete.
+- **Revisei um por um os 40 falsos positivos de capacete** ([revisão](reports/eval/yolov8s_640/helmet_fp_review.csv)): 22 são outros itens na cabeça (bonés, capuzes de macacão de proteção, máscaras contra poeira), 7 são erros de enquadramento sobre objetos anotados, 5 são fundo, 4 são capacetes reais sem anotação e 2 são ambíguos. Se esses 4 estivessem anotados, a precisão de capacete subiria de 0,612 para cerca de 0,650. É uma estimativa por inspeção visual, não uma medida.
+
+![Recall por tamanho](reports/eval/yolov8s_640/recall_by_size.png)
+
+Capacetes perdidos, dos maiores para os menores (verde: anotação; laranja: detecção):
+
+![Capacetes perdidos](reports/eval/yolov8s_640/fn_helmet.jpg)
+
+Falsos positivos de capacete de maior confiança:
+
+![Falsos positivos de capacete](reports/eval/yolov8s_640/fp_helmet.jpg)
+
+Os exemplos são recortes de imagens do SH17 (Pexels), sob CC BY-NC-SA 4.0.
+
 ## Cluster
 
 Também preparei o projeto para o supercomputador do NPAD/UFRN, com os jobs Slurm em [slurm/](slurm). O dataset gerado lá é idêntico byte a byte ao do meu PC, conferido com [scripts/dataset_fingerprint.py](scripts/dataset_fingerprint.py), que calcula um SHA-256 de cada parte.

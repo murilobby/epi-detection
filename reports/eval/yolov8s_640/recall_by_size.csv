@@ -1,0 +1,13 @@
+class_name,side_px,instances,found,recall
+head,pequeno,540,295,0.5463
+head,médio,713,665,0.9327
+head,grande,560,532,0.95
+helmet,pequeno,85,19,0.2235
+helmet,médio,42,32,0.7619
+helmet,grande,14,12,0.8571
+person,pequeno,203,75,0.3695
+person,médio,320,228,0.7125
+person,grande,1532,1427,0.9315
+safety-vest,pequeno,35,7,0.2
+safety-vest,médio,31,17,0.5484
+safety-vest,grande,15,12,0.8

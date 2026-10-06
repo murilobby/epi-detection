@@ -1,0 +1,41 @@
+rank,stem,conf,side_px,x0,y0,x1,y1,cause_auto,review,detail
+1,pexels-photo-15063590,0.871,32.2935,0.6195,0.2427,0.6762,0.3026,fundo,capacete sem anotação,capacete branco
+2,pexels-photo-896568,0.856,91.1712,0.4231,0.1326,0.5888,0.3174,fundo,capacete sem anotação,capacete de bombeiro com viseira
+3,pexels-photo-9162007,0.8332,125.8042,0.5104,0.0462,0.7219,0.2899,fundo,capacete sem anotação,capacete vermelho
+4,pexels-photo-3792575,0.8048,30.8342,0.3194,0.2287,0.3737,0.2978,fundo,capacete sem anotação,capacete amarelo
+5,pexels-photo-9226958,0.7727,50.8982,0.6161,0.6065,0.6971,0.7133,fundo,outro item na cabeça,máscara contra poeira
+6,pexels-photo-7083034,0.6762,21.8827,0.4864,0.3519,0.523,0.4087,fundo,outro item na cabeça,capuz de macacão de proteção
+7,pexels-photo-10922989,0.5803,60.207,0.5886,0.1087,0.6873,0.268,fundo,outro item na cabeça,boné
+8,pexels-photo-15080187,0.574,20.5445,0.4511,0.6049,0.5145,0.6338,fundo,ambíguo,pequeno demais para decidir
+9,pexels-photo-5657436,0.5738,60.3797,0.4594,0.1057,0.5614,0.2366,fundo,outro item na cabeça,capuz de macacão com respirador
+10,pexels-photo-7083034,0.571,19.6491,0.1897,0.3945,0.2275,0.4389,fundo,outro item na cabeça,capuz de macacão de proteção
+11,pexels-photo-7083034,0.5398,22.1568,0.3335,0.4299,0.3727,0.4842,fundo,outro item na cabeça,capuz de macacão de proteção
+12,pexels-photo-7083034,0.5325,18.7101,0.4058,0.4196,0.4391,0.4652,fundo,outro item na cabeça,capuz de macacão de proteção
+13,pexels-photo-15200454,0.5322,173.3558,0.2444,0.0932,0.7445,0.3133,duplicata,erro sobre objeto anotado,duplicata de capacete anotado
+14,pexels-photo-11139140,0.5245,301.2641,0.4293,0.1248,0.9523,0.6544,localização,erro sobre objeto anotado,caixa sobre dois capacetes anotados
+15,pexels-photo-9890410,0.5078,26.5891,0.7399,0.1422,0.7852,0.1803,fundo,outro item na cabeça,boné
+16,pexels-photo-9227080,0.4358,76.8676,0.3523,0.3152,0.5148,0.4336,fundo,outro item na cabeça,máscara contra poeira
+17,pexels-photo-15000480,0.4289,32.938,0.513,0.2069,0.6,0.2526,fundo,outro item na cabeça,bandana
+18,pexels-photo-14036795,0.4227,39.5611,0.3648,0.2282,0.471,0.2821,fundo,outro item na cabeça,boné
+19,pexels-photo-13937297,0.4168,18.898,0.5913,0.5876,0.6427,0.6131,fundo,ambíguo,"imagem em tons de cinza, pequena demais para decidir"
+20,pexels-photo-10922987,0.4141,34.0757,0.671,0.4136,0.7295,0.4998,fundo,outro item na cabeça,touca
+21,pexels-photo-16468070,0.3996,17.7089,0.4014,0.4237,0.4278,0.4672,fundo,outro item na cabeça,lenço
+22,pexels-photo-11139140,0.3733,293.2462,0.0,0.2254,0.4652,0.7895,classe trocada,erro sobre objeto anotado,caixa sobre capacete e pessoa anotados
+23,pexels-photo-5657432,0.3729,87.2646,0.3725,0.2823,0.5531,0.4368,fundo,fundo,camisa amarela de trabalhador curvado
+24,pexels-photo-11139140,0.3578,228.4114,0.0024,0.1514,0.4405,0.5149,duplicata,erro sobre objeto anotado,duplicata de capacete anotado
+25,pexels-photo-14539151,0.3462,79.8366,0.3038,0.2689,0.4397,0.4409,fundo,outro item na cabeça,máscara de solda levantada sobre um boné
+26,pexels-photo-3942369,0.3275,16.3988,0.7059,0.6686,0.7456,0.6934,fundo,outro item na cabeça,boné
+27,pexels-photo-7083034,0.3138,20.9341,0.5703,0.4303,0.5999,0.4947,fundo,outro item na cabeça,capuz de macacão de proteção
+28,pexels-photo-11114134,0.3025,27.8105,0.3268,0.5228,0.3688,0.5703,fundo,fundo,nuca
+29,pexels-photo-8155814,0.2964,11.8508,0.554,0.4662,0.5734,0.4927,fundo,fundo,costas de trabalhador
+30,pexels-photo-15791521,0.2804,88.8291,0.7265,0.2959,0.9045,0.4583,duplicata,erro sobre objeto anotado,duplicata de capacete anotado
+31,pexels-photo-7083034,0.2755,24.7887,0.2653,0.4081,0.303,0.4789,fundo,outro item na cabeça,capuz de macacão de proteção
+32,pexels-photo-4888918,0.2732,80.5875,0.5011,0.1128,0.7229,0.22,fundo,outro item na cabeça,chapéu
+33,pexels-photo-16340953,0.2709,28.2223,0.4934,0.3757,0.5803,0.4155,fundo,outro item na cabeça,capuz refletivo
+34,pexels-photo-9227080,0.2668,103.5768,0.3408,0.2587,0.5396,0.4343,classe trocada,outro item na cabeça,máscara contra poeira
+35,pexels-photo-4642437,0.2598,30.3691,0.7644,0.3607,0.8219,0.4129,fundo,fundo,janela
+36,pexels-photo-7976911,0.255,31.2264,0.2029,0.4587,0.2459,0.5418,duplicata,erro sobre objeto anotado,duplicata de capacete anotado
+37,pexels-photo-13820151,0.254,18.7759,0.3178,0.3582,0.3493,0.3992,fundo,fundo,nuca
+38,pexels-photo-4442490,0.2413,163.7065,0.0489,0.027,0.4555,0.3135,duplicata,erro sobre objeto anotado,duplicata sobre cabeça anotada
+39,pexels-photo-5434970,0.2346,30.6117,0.4863,0.3221,0.542,0.3769,fundo,outro item na cabeça,máscara de solda
+40,pexels-photo-7083034,0.2345,23.0019,0.7169,0.3675,0.7576,0.424,fundo,outro item na cabeça,capuz de macacão de proteção
