@@ -94,7 +94,7 @@ Avaliei o modelo uma única vez no conjunto de teste, que não participou de nen
 | **todas** | **0,653** | **0,451** | 0,664 (média) | 0,639 (média) | |
 
 - O mAP50-95 no teste (0,451) ficou igual ao da validação (0,452): escolher o modelo pela validação não a superajustou.
-- O mAP vem do Ultralytics. Precisão, recall e F1 eu calculei no pipeline de inferência, com uma classe por caixa, casando detecções e anotações por IoU >= 0,5 em ordem de confiança. Para capacete e colete, esses números ficam abaixo dos que o Ultralytics imprime: a validação dele deixa uma mesma caixa ter várias classes (`multi_label=True`), o que explica metade da diferença no recall de capacete. O restante eu não isolei.
+- O mAP vem do Ultralytics. Precisão, recall e F1 eu calculei no pipeline de inferência, com uma classe por caixa, casando detecções e anotações por IoU >= 0,5 em ordem de confiança. Comparando os dois cálculos no conjunto de validação, no mesmo limiar, os meus números de capacete e colete ficaram abaixo dos do Ultralytics: a validação dele deixa uma mesma caixa ter várias classes (`multi_label=True`), o que explicou metade da diferença no recall de capacete. O restante eu não isolei.
 - A matriz de confusão do Ultralytics usa confiança mínima de 0,001, que serve para o mAP mas não representa o uso real. Por isso calculei a minha no limiar de operação.
 
 ![Matriz de confusão](reports/eval/yolov8s_640/confusion_matrix.png)
