@@ -1,4 +1,4 @@
-"""Avalia o detector no conjunto de teste, com o limiar de confiança escolhido na validação.
+"""Avalia o detector num conjunto (o de teste, por padrão), com o limiar de confiança escolhido na validação.
 
 O mAP vem do Ultralytics, porque não depende de limiar. Precisão, recall, F1, matriz de confusão e
 a lista de acertos e erros são calculados aqui, no limiar que maximiza o F1 médio na validação.
@@ -30,6 +30,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weights", type=Path, default=Path("runs/train/yolov8s_640/weights/best.pt"))
     parser.add_argument("--data", type=Path, default=Path("configs/sh17_epi.yaml"))
     parser.add_argument("--out", type=Path, default=Path("reports/eval/yolov8s_640"))
+    parser.add_argument("--split", choices=("test", "val"), default="test",
+                        help="conjunto avaliado; o limiar de confiança é sempre escolhido na validação")
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=16)
     parser.add_argument("--iou", type=float, default=0.5, help="IoU mínimo para contar um acerto")
@@ -40,15 +42,16 @@ def parse_args() -> argparse.Namespace:
 
 def choose_confidence(model: YOLO, args: argparse.Namespace) -> tuple[float, float]:
     metrics = model.val(data=str(args.data), split="val", imgsz=args.imgsz, batch=args.batch, workers=args.workers,
-                        plots=False, verbose=False, project=str(RUNS), name="val", exist_ok=True)
+                        plots=False, verbose=False, project=str(RUNS), name="threshold", exist_ok=True)
     mean_f1 = metrics.box.f1_curve.mean(axis=0)
     best = int(np.argmax(mean_f1))
     return float(metrics.box.px[best]), float(mean_f1[best])
 
 
-def test_average_precision(model: YOLO, args: argparse.Namespace, out: Path) -> tuple[pd.DataFrame, dict]:
-    metrics = model.val(data=str(args.data), split="test", imgsz=args.imgsz, batch=args.batch, workers=args.workers,
-                        plots=True, verbose=False, project=str(RUNS), name="test", exist_ok=True)
+def average_precision(model: YOLO, args: argparse.Namespace, out: Path) -> tuple[pd.DataFrame, dict]:
+    metrics = model.val(data=str(args.data), split=args.split, imgsz=args.imgsz, batch=args.batch,
+                        workers=args.workers, plots=True, verbose=False, project=str(RUNS), name=args.split,
+                        exist_ok=True)
     # A curva PR não depende de limiar; a matriz de confusão do Ultralytics usa conf 0,001 e não é copiada.
     shutil.copy2(Path(metrics.save_dir) / "BoxPR_curve.png", out / "pr_curve.png")
     rows = [
@@ -64,10 +67,10 @@ def test_average_precision(model: YOLO, args: argparse.Namespace, out: Path) -> 
     return pd.DataFrame(rows).set_index("class_name"), {"mAP50": metrics.box.map50, "mAP50-95": metrics.box.map}
 
 
-def test_images(data_yaml: Path) -> list[Path]:
+def split_images(data_yaml: Path, split: str) -> list[Path]:
     data = yaml.safe_load(data_yaml.read_text(encoding="utf-8"))
     root = Path(data["path"])
-    return [root / line.removeprefix("./") for line in (root / data["test"]).read_text().split()]
+    return [root / line.removeprefix("./") for line in (root / data[split]).read_text().split()]
 
 
 def read_labels(image: Path) -> Boxes:
@@ -99,11 +102,11 @@ def box_record(stem: str, source: str, outcome: str, xyxy: np.ndarray, class_nam
     }
 
 
-def match_test_set(model: YOLO, args: argparse.Namespace, conf: float) -> tuple[pd.DataFrame, np.ndarray]:
+def match_split(model: YOLO, args: argparse.Namespace, conf: float) -> tuple[pd.DataFrame, np.ndarray]:
     names = model.names
     matrix = np.zeros((len(names) + 1, len(names) + 1), dtype=int)
     records = []
-    for path, pred, (height, width) in predict(model, test_images(args.data), args, conf):
+    for path, pred, (height, width) in predict(model, split_images(args.data, args.split), args, conf):
         gt = read_labels(path)
         match = match_image(pred, gt, args.iou)
         update_confusion(matrix, pred, gt, match)
@@ -135,7 +138,7 @@ def counts_at_threshold(matches: pd.DataFrame) -> pd.DataFrame:
     return table
 
 
-def plot_confusion(matrix: np.ndarray, labels: list[str], conf: float, path: Path) -> None:
+def plot_confusion(matrix: np.ndarray, labels: list[str], conf: float, split: str, path: Path) -> None:
     figure, ax = new_figure(width=6.4, height=5.2)
     share = matrix / np.maximum(matrix.sum(axis=0, keepdims=True), 1)
     ax.imshow(share, cmap=LinearSegmentedColormap.from_list("seq", SEQUENTIAL), vmin=0, vmax=1)
@@ -149,7 +152,8 @@ def plot_confusion(matrix: np.ndarray, labels: list[str], conf: float, path: Pat
     ax.set_ylabel("classe prevista")
     ax.grid(False)
     conf_text = f"{conf:.3f}".replace(".", ",")
-    set_title(ax, "Matriz de confusão no teste", f"confiança >= {conf_text} e IoU >= 0,5; % por coluna")
+    split_name = {"test": "no teste", "val": "na validação"}[split]
+    set_title(ax, f"Matriz de confusão {split_name}", f"confiança >= {conf_text} e IoU >= 0,5; % por coluna")
     figure.savefig(path)
 
 
@@ -159,19 +163,19 @@ def main() -> None:
     model = YOLO(str(args.weights))
 
     conf, val_f1 = choose_confidence(model, args)
-    ap_table, overall = test_average_precision(model, args, args.out)
-    matches, matrix = match_test_set(model, args, conf)
+    ap_table, overall = average_precision(model, args, args.out)
+    matches, matrix = match_split(model, args, conf)
     table = ap_table.join(counts_at_threshold(matches))
 
     labels = [*model.names.values(), "fundo"]
-    plot_confusion(matrix, labels, conf, args.out / "confusion_matrix.png")
+    plot_confusion(matrix, labels, conf, args.split, args.out / "confusion_matrix.png")
     pd.DataFrame(matrix, index=labels, columns=labels).rename_axis("previsto \\ verdadeiro").to_csv(
         args.out / "confusion_matrix.csv", lineterminator="\n")
     matches.to_csv(args.out / "matches.csv", index=False, lineterminator="\n")
 
     metrics = {
         "weights": str(args.weights),
-        "split": "test",
+        "split": args.split,
         "imgsz": args.imgsz,
         "confidence_threshold": {"value": round(conf, 4), "chosen_on": "val",
                                  "criterion": "maior F1 médio entre as classes", "val_mean_f1": round(val_f1, 4)},
