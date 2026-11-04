@@ -1,8 +1,10 @@
 # Detecção de EPIs com rastreamento
 
+[English version](README.en.md)
+
 Sistema de visão computacional que detecta capacete e colete em trabalhadores, dá um ID a cada pessoa ao longo de um vídeo com ByteTrack e registra quem ficou sem cada EPI e por quanto tempo. Fiz o fine-tuning de um YOLOv8s no dataset público SH17, avaliei no conjunto de teste, analisei os erros e montei o rastreamento sobre o detector.
 
-![Rastreamento no armazém](reports/track/warehouse_10817415/snapshot.jpg)
+![Rastreamento no armazém](reports/track/warehouse_10817415/demo.gif)
 
 A cor da caixa de cada pessoa indica o estado do capacete: verde para "sim", vermelho para "não" e cinza para "indefinido". As caixas finas brancas são os capacetes e coletes atribuídos a ela.
 
@@ -24,7 +26,7 @@ reports/   resultados versionados: análises, registro do treino, métricas e re
 slurm/     jobs para o cluster do NPAD
 ```
 
-Dados, pesos, vídeos e saídas de treino ficam em `data/`, `models/` e `runs/`, que não são versionados; os comandos abaixo recriam tudo.
+Dados, pesos, vídeos e saídas de treino ficam em `data/`, `models/` e `runs/`, que não são versionados; os comandos abaixo recriam tudo. Os pesos treinados também estão disponíveis numa [Release](https://github.com/murilobby/epi-detection/releases/tag/pesos-v1).
 
 ## Ambiente
 
@@ -37,6 +39,20 @@ pip install -r requirements.txt
 pip install -e .
 python scripts\check_gpu.py
 ```
+
+## Teste rápido
+
+Para rodar o sistema sem treinar, baixe os [pesos do treino](https://github.com/murilobby/epi-detection/releases/tag/pesos-v1) (22,5 MB) e use um vídeo seu ou o [vídeo do armazém](https://www.pexels.com/video/workers-with-safety-helmets-in-warehouse-10817415/), salvo em `data\videos\warehouse_10817415.mp4`:
+
+```powershell
+mkdir runs\train\yolov8s_640\weights, data\videos
+curl.exe -L -o runs\train\yolov8s_640\weights\best.pt https://github.com/murilobby/epi-detection/releases/download/pesos-v1/best.pt
+python scripts\track_video.py data\videos\warehouse_10817415.mp4 --report-dir runs\teste --video-out runs\teste\armazem.mp4
+```
+
+O vídeo anotado sai em `runs\teste\armazem.mp4`, e o relatório, na mesma pasta. Sem GPU NVIDIA, o script também roda na CPU, só que mais devagar.
+
+**Licença dos pesos:** eles foram treinados com o SH17 e, por isso, seguem a licença CC BY-NC-SA 4.0 do dataset: uso não comercial, com atribuição e compartilhamento pela mesma licença. O código segue a AGPL-3.0 (veja [Licença](#licença)).
 
 ## Dados
 
@@ -58,7 +74,7 @@ Decisões sobre os dados:
 
 - O download do Kaggle não inclui o arquivo com os nomes das classes. Converto a partir dos nomes nas anotações VOC, sem depender da ordem dos índices. Conferi que os índices YOLO batem com esses nomes em todas as caixas e com a ordem do `sh17.yaml` do repositório oficial.
 - Na divisão oficial, 92% das imagens de validação são de fotógrafos que também aparecem no treino, e fotos de uma mesma sessão podem ser quase idênticas. Refiz a divisão em 70/15/15 agrupando por fotógrafo e equilibrando, entre os conjuntos, tanto o número de caixas quanto o número de imagens que contêm cada classe. Equilibrar só as caixas deixava a validação com 5 imagens de colete, uma delas com 50 coletes; agora são 32 na validação e 32 no teste. A divisão usada está em [configs/sh17_epi_split.csv](configs/sh17_epi_split.csv).
-- Procurei quase-duplicatas com dHash. Nos pares que inspecionei, as duplicatas reais tinham distância de até 6 bits (de 64). Na minha divisão, os 2 pares nessa faixa que atravessam conjuntos são imagens diferentes; na oficial, 6 atravessam e todos são da mesma sessão de fotos. O dHash não detecta recortes nem imagens espelhadas.
+- Procurei quase-duplicatas com dHash. Nos pares que inspecionei, as duplicatas reais tinham distância de até 6 bits (de 64). Na minha divisão, os 2 pares nessa faixa que atravessam conjuntos são imagens diferentes; na oficial, 6 atravessam e todos são da mesma sessão de fotos. O dHash não detecta recortes nem imagens espelhadas. Os pares encontrados estão em [reports/near_duplicates.csv](reports/near_duplicates.csv).
 - Reduzi as imagens para no máximo 1280 px no lado maior. As originais têm mediana de 23 megapixels, e decodificá-las a cada época deixaria o treino limitado pela CPU.
 
 O que a análise mostrou ([reports/dataset](reports/dataset)):
@@ -124,9 +140,9 @@ Avaliei o modelo uma única vez no conjunto de teste, que não participou de nen
 O que os erros mostram:
 
 - **O recall cai muito com o tamanho do objeto.** O recall de capacete é de 22% para objetos pequenos (menos de 32 px), 76% para médios e 86% para grandes, e 85 dos 141 capacetes do teste são pequenos. Todas as classes seguem o mesmo padrão, como a análise do dataset indicava.
-- **O modelo quase não troca uma classe por outra; ele deixa de detectar.** Dos 78 capacetes perdidos, 69 não foram detectados como nada e 9 viraram cabeça.
+- **O modelo quase não troca uma classe por outra; ele deixa de detectar.** Dos 78 capacetes perdidos, 69 não foram detectados como nada e 9 viraram cabeça. A contagem por classe e por causa está em [error_causes.csv](reports/eval/yolov8s_640/error_causes.csv).
 - **Em 44 dos 78 capacetes perdidos (56%), o modelo detectou a cabeça no mesmo lugar**, mas não o capacete.
-- **Revisei um por um os 40 falsos positivos de capacete** ([revisão](reports/eval/yolov8s_640/helmet_fp_review.csv)): 22 são outros itens na cabeça (bonés, capuzes de macacão de proteção, máscaras contra poeira), 7 são erros de enquadramento sobre objetos anotados, 5 são fundo, 4 são capacetes reais sem anotação e 2 são ambíguos. Se esses 4 estivessem anotados, a precisão de capacete subiria de 0,612 para cerca de 0,650. É uma estimativa por inspeção visual, não uma medida.
+- **Revisei um por um os 40 falsos positivos de capacete** ([revisão](reports/eval/yolov8s_640/helmet_fp_review.csv), [todos os recortes](reports/eval/yolov8s_640/fp_helmet_all.jpg)): 22 são outros itens na cabeça (bonés, capuzes de macacão de proteção, máscaras contra poeira), 7 são erros de enquadramento sobre objetos anotados, 5 são fundo, 4 são capacetes reais sem anotação e 2 são ambíguos. Se esses 4 estivessem anotados, a precisão de capacete subiria de 0,612 para cerca de 0,650. É uma estimativa por inspeção visual, não uma medida.
 
 ![Recall por tamanho](reports/eval/yolov8s_640/recall_by_size.png)
 
@@ -138,20 +154,22 @@ Falsos positivos de capacete de maior confiança:
 
 ![Falsos positivos de capacete](reports/eval/yolov8s_640/fp_helmet.jpg)
 
+Os mesmos exemplos para colete: [perdidos](reports/eval/yolov8s_640/fn_safety-vest.jpg) e [falsos positivos](reports/eval/yolov8s_640/fp_safety-vest.jpg).
+
 Os exemplos são recortes de imagens do SH17 (Pexels), sob CC BY-NC-SA 4.0.
 
 ## Rastreamento
 
+Baixe os vídeos pelo navegador, nas páginas do [armazém](https://www.pexels.com/video/workers-with-safety-helmets-in-warehouse-10817415/) e da [obra](https://www.pexels.com/video/construction-workers-collaborating-on-site-30331740/) (o link direto com `curl` pode responder 403), e salve como `data\videos\warehouse_10817415.mp4` e `data\videos\site_30331740.mp4`. Depois:
+
 ```powershell
-mkdir data\videos
-curl.exe -L -o data\videos\warehouse_10817415.mp4 https://www.pexels.com/download/video/10817415/
-curl.exe -L -o data\videos\site_30331740.mp4 https://www.pexels.com/download/video/30331740/
 python scripts\evaluate.py --split val --out reports\eval\yolov8s_640_val
 python scripts\calibrate_head_size.py
 python scripts\track_video.py data\videos\warehouse_10817415.mp4
 python scripts\track_video.py data\videos\site_30331740.mp4
 python scripts\analyze_tracking.py reports\track\warehouse_10817415 reports\track\site_30331740
 python scripts\snapshot.py runs\track\warehouse_10817415.mp4 reports\track\warehouse_10817415\snapshot.jpg --time-s 9
+python scripts\make_gif.py runs\track\warehouse_10817415.mp4 reports\track\warehouse_10817415\demo.gif --start-s 6 --duration-s 4 --width 600
 ```
 
 Em cada quadro, o detector encontra pessoas, cabeças, capacetes e coletes; o ByteTrack dá um ID a cada pessoa; e cada cabeça, capacete e colete é atribuído à pessoa que o contém, com as regras em [src/epi/track/ppe.py](src/epi/track/ppe.py). A configuração está em [configs/track.yaml](configs/track.yaml). O vídeo anotado vai para `runs/track/`, e o estado de cada pessoa em cada quadro, os trechos sem EPI e um resumo com tempos e FPS vão para [reports/track](reports/track).
@@ -165,11 +183,13 @@ Decisões:
 
 Testei em dois vídeos do Pexels, [um armazém](https://www.pexels.com/video/workers-with-safety-helmets-in-warehouse-10817415/) (1080p, 14 s, de Низам DRedd) e [uma obra](https://www.pexels.com/video/construction-workers-collaborating-on-site-30331740/) (4K, 7,8 s, de aksinfo7 universe). Vídeos públicos não têm anotação de rastreamento, então não calculei métricas como MOTA ou IDF1: conferi cada ID nos quadros anotados.
 
-**Armazém** (imagem do topo): as duas pessoas mantiveram o mesmo ID nos 421 quadros. Ambas ficaram com capacete "sim" em 98,6% dos quadros (os primeiros 6 são o preenchimento da janela de suavização), sem nenhum alarme falso. O único evento registrado é verdadeiro: a pessoa de jaleco branco ficou 13,8 s sem colete. No estado bruto, o colete alternou 10 vezes entre "sim" e "não"; depois da suavização, nenhuma. Um ID extra durou 1 s sobre uma prateleira e ficou "indefinido", sem gerar evento.
+**Armazém** (GIF do topo): as duas pessoas mantiveram o mesmo ID nos 421 quadros. Ambas ficaram com capacete "sim" em 98,6% dos quadros (os primeiros 6 são o preenchimento da janela de suavização), sem nenhum alarme falso. O único evento registrado é verdadeiro: a pessoa de jaleco branco ficou 13,8 s sem colete. No estado bruto, o colete alternou 10 vezes entre "sim" e "não"; depois da suavização, nenhuma. Um ID extra durou 1 s sobre uma prateleira e ficou "indefinido", sem gerar evento.
+
+![Quadro anotado do armazém](reports/track/warehouse_10817415/snapshot.jpg)
 
 ![Linha do tempo do armazém](reports/track/warehouse_10817415/timeline.png)
 
-**Obra:** câmera parada, com seis pessoas rastreadas durante a maior parte do vídeo.
+**Obra:** câmera parada, com seis pessoas rastreadas durante a maior parte do vídeo. O [resumo](reports/track/site_30331740/summary.json) registra 8 IDs: os das seis pessoas (1, 2, 3, 4, 5 e 11) e os IDs 12 e 14, que duram menos de 1 s cada (17 e 20 quadros). Conferindo os quadros, esses dois são detecções falsas de pessoa sobre o vão escuro de uma porta, no alto da imagem. Ficaram "indefinido", sem cabeça detectada, e não geraram evento.
 
 - Os três trabalhadores de capacete à frente ficaram "sim" o tempo todo, e os dois sem colete tiveram o colete marcado como "não", corretamente.
 - Um trabalhador ao fundo, de capacete e colete, tem cabeça de 7,7 px na entrada do modelo. Sem o limite de tamanho, ele gerava dois alarmes falsos; com o limite, fica "indefinido".
@@ -227,4 +247,4 @@ Agradeço ao Núcleo de Processamento de Alto Desempenho da UFRN (NPAD/UFRN) pel
 
 ## Licença
 
-AGPL-3.0, porque o projeto usa o Ultralytics YOLO, distribuído sob essa licença.
+O código está sob a AGPL-3.0, porque o projeto usa o Ultralytics YOLO, distribuído sob essa licença. Os pesos publicados na Release foram treinados com o SH17 e seguem também a licença CC BY-NC-SA 4.0 do dataset.
