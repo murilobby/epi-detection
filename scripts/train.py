@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import json
 import platform
-import socket
 import subprocess
 from pathlib import Path
 
@@ -51,7 +50,6 @@ def git_state() -> dict[str, str | bool | None]:
 
 def environment() -> dict[str, object]:
     return {
-        "host": socket.gethostname(),
         "python": platform.python_version(),
         "torch": torch.__version__,
         "cuda": torch.version.cuda,

@@ -17,8 +17,6 @@ __pycache__/
 *.avi
 *.mov
 
-cpp/build/
-
 .vscode/
 .idea/
 Thumbs.db

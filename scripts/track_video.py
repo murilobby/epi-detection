@@ -122,7 +122,8 @@ def run(args: argparse.Namespace, cfg: dict, video_out: Path) -> tuple[pd.DataFr
             break
         t1 = time.perf_counter()
         result = model.predict(frame, conf=cfg["person_conf"], imgsz=cfg["imgsz"], verbose=False)[0]
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
         t2 = time.perf_counter()
         boxes = result.boxes.cpu().numpy()
         tracks = tracker.update(boxes[boxes.cls == PERSON], frame)
@@ -184,7 +185,7 @@ def summarize(frames: pd.DataFrame, timings_ms: np.ndarray, meta: dict, cfg: dic
     return {
         **meta,
         "config": cfg,
-        "gpu": torch.cuda.get_device_name(0),
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "track_ids": int(frames.track_id.nunique()),
         "transitions": {column: transitions(frames, column)
                         for column in ("helmet_raw", "helmet", "vest_raw", "vest")},
