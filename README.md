@@ -1,5 +1,7 @@
 # Detecção de EPIs com rastreamento
 
+[![CI](https://github.com/murilobby/epi-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/murilobby/epi-detection/actions/workflows/ci.yml)
+
 [English version](README.en.md)
 
 Sistema de visão computacional que detecta capacete e colete em trabalhadores, dá um ID a cada pessoa ao longo de um vídeo com ByteTrack e registra quem ficou sem cada EPI e por quanto tempo. Fiz o fine-tuning de um YOLOv8s no dataset público SH17, avaliei no conjunto de teste, analisei os erros e montei o rastreamento sobre o detector.
@@ -24,6 +26,7 @@ scripts/   um script por etapa, na ordem deste README
 src/epi/   código usado pelos scripts: dados, avaliação, rastreamento e gráficos
 reports/   resultados versionados: análises, registro do treino, métricas e relatórios do rastreamento
 slurm/     jobs para o cluster do NPAD
+tests/     testes da atribuição de EPIs, do casamento por IoU e da divisão por fotógrafo
 ```
 
 Dados, pesos, vídeos e saídas de treino ficam em `data/`, `models/` e `runs/`, que não são versionados; os comandos abaixo recriam tudo. Os pesos treinados também estão disponíveis numa [Release](https://github.com/murilobby/epi-detection/releases/tag/pesos-v1).
@@ -38,6 +41,15 @@ python -m venv .venv
 pip install -r requirements.txt
 pip install -e .
 python scripts\check_gpu.py
+```
+
+## Testes automatizados
+
+Os testes em `tests/` cobrem a lógica que não depende do modelo: a atribuição de cabeça, capacete e colete a cada pessoa, a suavização do estado no tempo, o casamento de detecções por IoU usado na avaliação e a divisão por fotógrafo. Rodam sem GPU e sem os pesos, e o GitHub Actions os executa a cada envio.
+
+```powershell
+pip install pytest==9.2.0
+python -m pytest
 ```
 
 ## Teste rápido
