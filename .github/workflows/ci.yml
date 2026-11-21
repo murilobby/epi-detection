@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      # Os testes cobrem a lógica que não depende do modelo, então dispensam PyTorch, Ultralytics e GPU.
+      # O OpenCV headless tem a mesma versão do requirements.txt, sem as dependências de interface gráfica.
+      - name: Instalar as dependências dos testes
+        run: |
+          python -m pip install numpy==2.4.6 pandas==3.0.6 pillow==12.3.0 opencv-python-headless==5.0.0.93 pytest==9.2.0
+          python -m pip install -e . --no-deps
+
+      - name: Rodar os testes
+        run: python -m pytest -v

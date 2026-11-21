@@ -1,5 +1,7 @@
 # PPE detection with tracking
 
+[![CI](https://github.com/murilobby/epi-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/murilobby/epi-detection/actions/workflows/ci.yml)
+
 [Versão em português](README.md)
 
 Computer vision system that detects helmets and safety vests on workers, gives each person an ID throughout a video with ByteTrack, and records who was missing each piece of PPE and for how long. I fine-tuned a YOLOv8s on the public SH17 dataset, evaluated it on the test set, analyzed the errors and built the tracking on top of the detector.
@@ -24,6 +26,7 @@ scripts/   one script per step, in the order of this README
 src/epi/   code used by the scripts: data, evaluation, tracking and plots
 reports/   versioned results: analyses, training record, metrics and tracking reports
 slurm/     jobs for the NPAD cluster
+tests/     tests for PPE assignment, IoU matching and the photographer split
 ```
 
 Data, weights, videos and training outputs live in `data/`, `models/` and `runs/`, which are not versioned; the commands below recreate everything. The trained weights are also available in a [Release](https://github.com/murilobby/epi-detection/releases/tag/pesos-v1).
@@ -38,6 +41,15 @@ python -m venv .venv
 pip install -r requirements.txt
 pip install -e .
 python scripts\check_gpu.py
+```
+
+## Automated tests
+
+The tests in `tests/` cover the logic that does not depend on the model: assigning heads, helmets and vests to each person, smoothing the state over time, the IoU matching used in the evaluation, and the photographer split. They run without a GPU or the weights, and GitHub Actions runs them on every push.
+
+```powershell
+pip install pytest==9.2.0
+python -m pytest
 ```
 
 ## Quick test
