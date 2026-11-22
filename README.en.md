@@ -45,7 +45,7 @@ python scripts\check_gpu.py
 
 ## Automated tests
 
-The tests in `tests/` cover the logic that does not depend on the model: assigning heads, helmets and vests to each person, smoothing the state over time, the IoU matching used in the evaluation, and the photographer split. They run without a GPU or the weights, and GitHub Actions runs them on every push.
+The tests in `tests/` cover parts of the logic that does not depend on the model: assigning heads, helmets and vests to each person, smoothing the state over time, the IoU matching used in the evaluation, and the photographer split. They run without a GPU or the weights, and GitHub Actions runs them on every push.
 
 ```powershell
 pip install pytest==9.2.0

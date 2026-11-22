@@ -45,7 +45,7 @@ python scripts\check_gpu.py
 
 ## Testes automatizados
 
-Os testes em `tests/` cobrem a lógica que não depende do modelo: a atribuição de cabeça, capacete e colete a cada pessoa, a suavização do estado no tempo, o casamento de detecções por IoU usado na avaliação e a divisão por fotógrafo. Rodam sem GPU e sem os pesos, e o GitHub Actions os executa a cada envio.
+Os testes em `tests/` cobrem partes da lógica que não depende do modelo: a atribuição de cabeça, capacete e colete a cada pessoa, a suavização do estado no tempo, o casamento de detecções por IoU usado na avaliação e a divisão por fotógrafo. Rodam sem GPU e sem os pesos, e o GitHub Actions os executa a cada envio.
 
 ```powershell
 pip install pytest==9.2.0
